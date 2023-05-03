@@ -1,0 +1,6 @@
+Context is provided below within contextstart and contextend
+contextstart
+{{%input%}}
+contextend
+
+according to the above context, {{:promote:}}
