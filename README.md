@@ -12,11 +12,14 @@ Plug 'zhenyangze/vim-bitoai'
 ## *Usage*
 
 - BitoAiGenerate
-- BitoAiUnit
-- BitoAiExplain
-- BitoAiComment
-- BitoAiImprove
+- BitoAiGenerateUnit
+- BitoAiGenerateComment
 - BitoAiCheck
+- BitoAiCheckSecurity
+- BitoAiCheckStyle
+- BitoAiCheckPerformance
+- BitoAiReadable
+- BitoAiExplain
 
 
 
@@ -30,4 +33,4 @@ endif
 " if should select code
 command! -range -nargs=0 BitoAiCommand :call BitoAiSelected('command')
 ```
-
+should replace the `command` with your self
