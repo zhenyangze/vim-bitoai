@@ -2,10 +2,10 @@ if exists('g:loaded_vim_bito')
     finish
 endif
 let g:loaded_vim_bito = 1
+let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history_')
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
- " Set default values for variables if they don't exist
+" Set default values for variables if they don't exist
 let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
-let g:vim_bito_command = get(g:, 'vim_bito_command', "AsyncRun -mode=async -close=0 -pos=right -raw")
 let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
 let g:vim_bito_promote_generate = get(g:, 'vim_bito_promote_generate', "Please Generate Code")
 let g:vim_bito_promote_generate_unit = get(g:, 'vim_bito_promote_generate_unit', "Please Generate Unit Test Code")
@@ -42,6 +42,9 @@ function! BitoAiExec(promote, input)
     let l:tempFile = tempname()
     call writefile(split(a:input, "\n"), l:tempFile)
     let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/common.txt')
+    if (a:promote == "generate")
+        let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/generate.txt')
+    endif
     if exists('g:vim_bito_promote_' . a:promote)
         let l:promote = execute('echo g:vim_bito_promote_' . a:promote) . g:vim_bito_promote_append
     else
@@ -57,9 +60,53 @@ function! BitoAiExec(promote, input)
 
     let l:templatePath = tempname()
     call writefile(l:replaced_content, l:templatePath)
-    let l:bitoaiPath = g:vim_bito_path
-    let cmd = l:bitoaiPath . ' -p ' . shellescape(l:templatePath) . ' -f ' . shellescape(l:tempFile)
-    exec g:vim_bito_command . ' ' . cmd
+
+    let l:cmdList = [g:vim_bito_path, '-p', l:templatePath, '-f', l:tempFile]
+
+    if has('nvim')
+        let job = jobstart(l:cmdList, {'on_stdout': 'BiAsyncCallback'})
+    else
+        let job = job_start(l:cmdList, {'on_exit': 'BiAsyncCallback'})
+    endif
+
+endfunction
+
+function! s:BitoAiFindBufferNo(job_id)
+    let l:buf_list = tabpagebuflist()
+    let l:buf_no = 0
+    let s:bito_buffer_name = g:bito_buffer_name_prefix . a:job_id
+
+    for buf in l:buf_list
+        if getbufvar(buf, '&filetype') == 'bito' && bufname(buf) == s:bito_buffer_name
+            let l:buf_no = buf
+            break
+        endif
+    endfor
+
+    if l:buf_no == 0
+        exec 'vs ' . s:bito_buffer_name
+        execute 'set filetype=bito'
+        set norelativenumber swapfile bufhidden=hide
+        let l:buf_no = bufnr("%")
+    endif
+
+    return l:buf_no
+endfunction
+
+function! BiAsyncCallback(job_id, data, event)
+    let g:bito_job_list = get(g:, 'bito_job_list', {})
+    let g:bito_job_list[a:job_id] = get(g:bito_job_list, a:job_id, 1)
+
+    let l:buf_no = s:BitoAiFindBufferNo(a:job_id)
+    let l:line_text = get(getbufline(l:buf_no, g:bito_job_list[a:job_id]), 0, '')
+    for line in range(1, len(a:data))
+        if line == 1
+            call setbufline(l:buf_no, g:bito_job_list[a:job_id], l:line_text . a:data[line - 1])
+        else
+            call appendbufline(l:buf_no, '$',  a:data[line - 1])
+            let g:bito_job_list[a:job_id] = g:bito_job_list[a:job_id] + 1
+        endif
+    endfor
 endfunction
 
 command! -nargs=0 BitoAiGenerate :call BitoAiGenerate()
