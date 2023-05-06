@@ -5,7 +5,7 @@ let g:loaded_vim_bito = 1
 let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history_')
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
 " Set default values for variables if they don't exist
-let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
+let g:vim_bito_path = get(g:, 'vim_bito_path', "/usr/local/bin/bito")
 let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
 let g:vim_bito_promote_generate = get(g:, 'vim_bito_promote_generate', "Please Generate Code")
 let g:vim_bito_promote_generate_unit = get(g:, 'vim_bito_promote_generate_unit', "Please Generate Unit Test Code")
@@ -62,11 +62,10 @@ function! BitoAiExec(promote, input)
     call writefile(l:replaced_content, l:templatePath)
 
     let l:cmdList = [g:vim_bito_path, '-p', l:templatePath, '-f', l:tempFile]
-
     if has('nvim')
         let job = jobstart(l:cmdList, {'on_stdout': 'BiAsyncCallback'})
     else
-        let job = job_start(l:cmdList, {'on_exit': 'BiAsyncCallback'})
+        let job = job_start(l:cmdList, {'out_cb': 'BiAsyncCallback', 'in_io': 'null'})
     endif
 
 endfunction
@@ -93,20 +92,25 @@ function! s:BitoAiFindBufferNo(job_id)
     return l:buf_no
 endfunction
 
-function! BiAsyncCallback(job_id, data, event)
+function! BiAsyncCallback(job_id, data, ...)
     let g:bito_job_list = get(g:, 'bito_job_list', {})
     let g:bito_job_list[a:job_id] = get(g:bito_job_list, a:job_id, 1)
 
     let l:buf_no = s:BitoAiFindBufferNo(a:job_id)
-    let l:line_text = get(getbufline(l:buf_no, g:bito_job_list[a:job_id]), 0, '')
-    for line in range(1, len(a:data))
-        if line == 1
-            call setbufline(l:buf_no, g:bito_job_list[a:job_id], l:line_text . a:data[line - 1])
-        else
-            call appendbufline(l:buf_no, '$',  a:data[line - 1])
-            let g:bito_job_list[a:job_id] = g:bito_job_list[a:job_id] + 1
-        endif
-    endfor
+
+    if has('nvim')
+        let l:line_text = get(getbufline(l:buf_no, g:bito_job_list[a:job_id]), 0, '')
+        for line in range(1, len(a:data))
+            if line == 1
+                call setbufline(l:buf_no, g:bito_job_list[a:job_id], l:line_text . a:data[line - 1])
+            else
+                call appendbufline(l:buf_no, '$',  a:data[line - 1])
+                let g:bito_job_list[a:job_id] = g:bito_job_list[a:job_id] + 1
+            endif
+        endfor
+    else
+        call appendbufline(l:buf_no, '$', a:data)
+    endif
 endfunction
 
 command! -nargs=0 BitoAiGenerate :call BitoAiGenerate()
