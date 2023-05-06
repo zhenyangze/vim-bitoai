@@ -15,6 +15,19 @@ https://github.com/gitbito/CLI
 Plug 'zhenyangze/vim-bitoai'
 ```
 
+3. change config
+
+```
+" will show in buffers list
+let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history_')
+
+" if your bito cli is not sys command, you should change the bito path
+let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
+
+" can change all the result of boti ,like: "Please translate the comment into chinses", "Please write the comment in chinses
+let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
+```
+
 
 
 ## *Usage*

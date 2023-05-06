@@ -5,7 +5,7 @@ let g:loaded_vim_bito = 1
 let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history_')
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
 " Set default values for variables if they don't exist
-let g:vim_bito_path = get(g:, 'vim_bito_path', "/usr/local/bin/bito")
+let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
 let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
 let g:vim_bito_promote_generate = get(g:, 'vim_bito_promote_generate', "Please Generate Code")
 let g:vim_bito_promote_generate_unit = get(g:, 'vim_bito_promote_generate_unit', "Please Generate Unit Test Code")
@@ -46,7 +46,7 @@ function! BitoAiExec(promote, input)
         let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/generate.txt')
     endif
     if exists('g:vim_bito_promote_' . a:promote)
-        let l:promote = execute('echo g:vim_bito_promote_' . a:promote) . g:vim_bito_promote_append
+        let l:promote = execute('echo g:vim_bito_promote_' . a:promote) . ' ' . g:vim_bito_promote_append
     else
         echomsg "Undefined variable: g:vim_bito_promote_" . a:promote
         return
