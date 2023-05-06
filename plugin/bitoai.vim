@@ -6,18 +6,18 @@ let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
 " Set default values for variables if they don't exist
 let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
-let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
-let g:vim_bito_promote_generate = get(g:, 'vim_bito_promote_generate', "Please Generate Code")
-let g:vim_bito_promote_generate_unit = get(g:, 'vim_bito_promote_generate_unit', "Please Generate Unit Test Code")
-let g:vim_bito_promote_explain = get(g:, 'vim_bito_promote_explain', "What does that code do")
-let g:vim_bito_promote_generate_comment = get(g:, 'vim_bito_promote_generate_comment', "Generate a comment for this method, explaining the parameters and output")
-let g:vim_bito_promote_check_performance = get(g:, 'vim_bito_promote_check_performance', "Check code for performance issues, explain the issues, and rewrite code if possible")
-let g:vim_bito_promote_check = get(g:, 'vim_bito_promote_check', "Identify potential issues that would find in this code, explain the issues, and rewrite code if possible")
-let g:vim_bito_promote_check_security = get(g:, 'vim_bito_promote_check_security', "Check code for security issues, explain the issues, and rewrite code if possible")
-let g:vim_bito_promote_readable = get(g:, 'vim_bito_promote_readable', "Organize the code to be more human readable")
-let g:vim_bito_promote_check_style = get(g:, 'vim_bito_promote_check_style', "Check code for style issues, explain the issues, and rewrite code if possible")
+let g:vim_bito_prompt_append = get(g:, 'vim_bito_prompt_append', "")
+let g:vim_bito_prompt_generate = get(g:, 'vim_bito_prompt_generate', "Please Generate Code")
+let g:vim_bito_prompt_generate_unit = get(g:, 'vim_bito_prompt_generate_unit', "Please Generate Unit Test Code")
+let g:vim_bito_prompt_explain = get(g:, 'vim_bito_prompt_explain', "What does that code do")
+let g:vim_bito_prompt_generate_comment = get(g:, 'vim_bito_prompt_generate_comment', "Generate a comment for this method, explaining the parameters and output")
+let g:vim_bito_prompt_check_performance = get(g:, 'vim_bito_prompt_check_performance', "Check code for performance issues, explain the issues, and rewrite code if possible")
+let g:vim_bito_prompt_check = get(g:, 'vim_bito_prompt_check', "Identify potential issues that would find in this code, explain the issues, and rewrite code if possible")
+let g:vim_bito_prompt_check_security = get(g:, 'vim_bito_prompt_check_security', "Check code for security issues, explain the issues, and rewrite code if possible")
+let g:vim_bito_prompt_readable = get(g:, 'vim_bito_prompt_readable', "Organize the code to be more human readable")
+let g:vim_bito_prompt_check_style = get(g:, 'vim_bito_prompt_check_style', "Check code for style issues, explain the issues, and rewrite code if possible")
 function! BitoAiGenerate()
-    let l:input = input("Bito Promote：")
+    let l:input = input("Bito prompt：")
 
     if l:input == ""
         echo "Please Input Context!"
@@ -26,7 +26,7 @@ function! BitoAiGenerate()
     call BitoAiExec('generate', l:input)
 endfunction
 
-function! BitoAiSelected(promote)
+function! BitoAiSelected(prompt)
     let l:start = getpos("'<")[1]
     let l:end = getpos("'>")[1]
     let l:lines = getline(l:start, l:end)
@@ -35,26 +35,26 @@ function! BitoAiSelected(promote)
     if l:text == ""
         return
     endif
-    call BitoAiExec(a:promote, l:text)
+    call BitoAiExec(a:prompt, l:text)
 endfunction
 
-function! BitoAiExec(promote, input)
+function! BitoAiExec(prompt, input)
     let l:tempFile = tempname()
     call writefile(split(a:input, "\n"), l:tempFile)
     let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/common.txt')
-    if (a:promote == "generate")
+    if (a:prompt == "generate")
         let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/generate.txt')
     endif
-    if exists('g:vim_bito_promote_' . a:promote)
-        let l:promote = execute('echo g:vim_bito_promote_' . a:promote) . ' ' . g:vim_bito_promote_append
+    if exists('g:vim_bito_prompt_' . a:prompt)
+        let l:prompt = execute('echo g:vim_bito_prompt_' . a:prompt) . ' ' . g:vim_bito_prompt_append
     else
-        echomsg "Undefined variable: g:vim_bito_promote_" . a:promote
+        echomsg "Undefined variable: g:vim_bito_prompt_" . a:prompt
         return
     endif
 
     let l:replaced_content = []
     for line in l:common_content
-        let l:replaced_line = substitute(line, '{{:promote:}}', l:promote, '')
+        let l:replaced_line = substitute(line, '{{:prompt:}}', l:prompt, '')
         call add(l:replaced_content, l:replaced_line)
     endfor
 

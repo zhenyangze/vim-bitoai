@@ -25,7 +25,7 @@ let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history
 let g:vim_bito_path = get(g:, 'vim_bito_path', "bito")
 
 " can change all the result of boti ,like: "Please translate the comment into chinses", "Please write the comment in chinses
-let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
+let g:vim_bito_prompt_append = get(g:, 'vim_bito_prompt_append', "")
 ```
 
 
@@ -47,8 +47,8 @@ let g:vim_bito_promote_append = get(g:, 'vim_bito_promote_append', "")
 ## Custom
 
 ```
-if !exists("g:vim_bito_promote_{command}")
-    let g:vim_bito_promote_{command} = "your promote"
+if !exists("g:vim_bito_prompt_{command}")
+    let g:vim_bito_prompt_{command} = "your prompt"
 endif
 
 " if should select code

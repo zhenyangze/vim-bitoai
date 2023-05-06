@@ -3,4 +3,4 @@ contextstart
 {{%input%}}
 contextend
 
-according to the above context, {{:promote:}}
+according to the above context, {{:prompt:}}
