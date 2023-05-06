@@ -85,7 +85,8 @@ function! s:BitoAiFindBufferNo(job_id)
     if l:buf_no == 0
         exec 'vs ' . s:bito_buffer_name
         execute 'set filetype=bito'
-        set norelativenumber swapfile bufhidden=hide
+        setlocal norelativenumber swapfile bufhidden=hide
+        setlocal buftype=nofile
         let l:buf_no = bufnr("%")
     endif
 
