@@ -1,6 +1,9 @@
 if exists('g:loaded_vim_bito')
     finish
 endif
+if has('nvim')
+    lua vim.treesitter.language.register('markdown', 'bito')
+endif
 let g:loaded_vim_bito = 1
 let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history_')
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
