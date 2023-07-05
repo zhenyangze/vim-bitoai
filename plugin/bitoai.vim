@@ -63,7 +63,7 @@ function! BitoAiExec(prompt, input)
 
     let l:cmdList = [g:vim_bito_path, '-p', l:templatePath, '-f', l:tempFile]
     if has('nvim')
-        let job = jobstart(l:cmdList, {'on_stdout': 'BiAsyncCallback'})
+        let job = jobstart(l:cmdList, {'on_stdout': 'BiAsyncCallback', 'stdin': 'null'})
     else
         let job = job_start(l:cmdList, {'out_cb': 'BiAsyncCallback', 'in_io': 'null'})
     endif
