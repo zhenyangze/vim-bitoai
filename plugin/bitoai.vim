@@ -13,6 +13,8 @@ if has('nvim')
 endif
 
 " This variable ensures the plugin is loaded only once.
+
+" This variable ensures the plugin is loaded only once.
 let g:loaded_vim_bito = 1
 
 " ---------------------------------------------------------------------------------------------------
@@ -22,7 +24,13 @@ let g:bito_buffer_name_prefix = get(g:, 'bito_buffer_name_prefix', 'bito_history
 
 " Get the directory path where this Vim script resides. Useful when accessing
 " other related files or templates in the same directory.
+
+" Get the directory path where this Vim script resides. Useful when accessing
+" other related files or templates in the same directory.
 let g:vim_bito_plugin_path = fnamemodify(expand('<sfile>:p:h'), ':p')
+
+" Set default prompts for Bito interactions. These can be customized by users
+" in their vimrc to suit their needs.
 
 " Set default prompts for Bito interactions. These can be customized by users
 " in their vimrc to suit their needs.
@@ -43,13 +51,17 @@ let g:vim_bito_prompt_check_style = get(g:, 'vim_bito_prompt_check_style', "Chec
 " ---------------------------------------------------------------------------------------------------
 function! BitoAiGenerate()
     " Prompt the user for input.
+    " Prompt the user for input.
     let l:input = input("Bito prompt：")
 
+    " If no input is provided, show an error message and return.
     " If no input is provided, show an error message and return.
     if l:input == ""
         echo "Please Input Context!"
         return
     endif
+
+    " Execute the Bito command with the 'generate' prompt.
 
     " Execute the Bito command with the 'generate' prompt.
     call BitoAiExec('generate', l:input)
@@ -60,17 +72,23 @@ endfunction
 " ---------------------------------------------------------------------------------------------------
 function! BitoAiSelected(prompt)
     " Get the start and end line numbers of the selected text.
+    " Get the start and end line numbers of the selected text.
     let l:start = getpos("'<")[1]
     let l:end = getpos("'>")[1]
+
+    " Fetch the lines from the start to the end of the selection.
 
     " Fetch the lines from the start to the end of the selection.
     let l:lines = getline(l:start, l:end)
     let l:text = join(l:lines, "\n")
 
     " If there's no selected text, simply return.
+    " If there's no selected text, simply return.
     if l:text == ""
         return
     endif
+
+    " Execute the Bito command using the provided prompt.
 
     " Execute the Bito command using the provided prompt.
     call BitoAiExec(a:prompt, l:text)
@@ -81,14 +99,19 @@ endfunction
 " ---------------------------------------------------------------------------------------------------
 function! BitoAiExec(prompt, input)
     " Write the input to a temporary file for Bito to process.
+    " Write the input to a temporary file for Bito to process.
     let l:tempFile = tempname()
     call writefile(split(a:input, "\n"), l:tempFile)
+
+    " Load the appropriate Bito template based on the prompt.
 
     " Load the appropriate Bito template based on the prompt.
     let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/common.txt')
     if (a:prompt == "generate")
         let l:common_content = readfile(g:vim_bito_plugin_path . '/templates/generate.txt')
     endif
+
+    " Fetch the correct Bito prompt based on the given argument.
 
     " Fetch the correct Bito prompt based on the given argument.
     if exists('g:vim_bito_prompt_' . a:prompt)
@@ -99,6 +122,7 @@ function! BitoAiExec(prompt, input)
     endif
 
     " Replace placeholders in the Bito template with the actual values.
+    " Replace placeholders in the Bito template with the actual values.
     let l:replaced_content = []
     for line in l:common_content
         let l:replaced_line = substitute(line, '{{:prompt:}}', l:prompt, '')
@@ -106,9 +130,11 @@ function! BitoAiExec(prompt, input)
     endfor
 
     " Write the replaced content to another temporary file.
+    " Write the replaced content to another temporary file.
     let l:templatePath = tempname()
     call writefile(l:replaced_content, l:templatePath)
 
+    " Run Bito using the constructed templates and the input file.
     " Run Bito using the constructed templates and the input file.
     let l:cmdList = [g:vim_bito_path, '-p', l:templatePath, '-f', l:tempFile]
     if has('nvim')
@@ -201,25 +227,42 @@ command! -nargs=0 BitoAiGenerate :call BitoAiGenerate()
 
 " Define a command for generating code with Bito for a selected range in 'unit' mode.
 " This uses the range provided by the user to determine the text to use as input for Bito.
+
+" Define a command for generating code with Bito for a selected range in 'unit' mode.
+" This uses the range provided by the user to determine the text to use as input for Bito.
 command! -range -nargs=0 BitoAiGenerateUnit :call BitoAiSelected('generate_unit')
+
+" Define a command for generating code comments with Bito for a selected range.
 
 " Define a command for generating code comments with Bito for a selected range.
 command! -range -nargs=0 BitoAiGenerateComment :call BitoAiSelected('generate_comment')
 
 " Define a command for checking code with Bito for a selected range.
+
+" Define a command for checking code with Bito for a selected range.
 command! -range -nargs=0 BitoAiCheck :call BitoAiSelected('check')
+
+" Define a command for checking code security with Bito for a selected range.
 
 " Define a command for checking code security with Bito for a selected range.
 command! -range -nargs=0 BitoAiCheckSecurity :call BitoAiSelected('check_security')
 
 " Define a command for checking code style with Bito for a selected range.
+
+" Define a command for checking code style with Bito for a selected range.
 command! -range -nargs=0 BitoAiCheckStyle :call BitoAiSelected('check_style')
+
+" Define a command for checking code performance with Bito for a selected range.
 
 " Define a command for checking code performance with Bito for a selected range.
 command! -range -nargs=0 BitoAiCheckPerformance :call BitoAiSelected('check_performance')
 
 " Define a command for making code more readable with Bito for a selected range.
+
+" Define a command for making code more readable with Bito for a selected range.
 command! -range -nargs=0 BitoAiReadable :call BitoAiSelected('readable')
+
+" Define a command for explaining code with Bito for a selected range.
 
 " Define a command for explaining code with Bito for a selected range.
 command! -range -nargs=0 BitoAiExplain :call BitoAiSelected('explain')
