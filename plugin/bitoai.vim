@@ -179,41 +179,71 @@ function! s:BitoAiFindBufferNo(job_id)
     return l:buf_no
 endfunction
 
-" Initialize a global variable for the job status
 let g:bito_jobs_opened = {}
 
-function! BitoJobExit(job_id, exit_status, event_type)
-    " If the job has not been opened in a buffer before, jump to it
-    if !get(g:bito_jobs_opened, a:job_id, 0)
-        let l:buf_no = s:BitoAiFindBufferNo(a:job_id)
-        call win_gotoid(bufwinid(l:buf_no))
+function! BitoJobExit(job_id, _exit_status, _event_type)
+    " Navigate to buffer if not opened before
+    if !has_key(g:bito_jobs_opened, a:job_id)
+        call s:GotoBufferForJob(a:job_id)
     endif
 
-    " Cleanup: remove the job_id from the global tracking
+    " Clean up
     unlet g:bito_jobs_opened[a:job_id]
 endfunction
 
 function! BiAsyncCallback(job_id, data, ...)
-    let g:bito_job_list = get(g:, 'bito_job_list', {})
-    let g:bito_job_list[a:job_id] = get(g:bito_job_list, a:job_id, 1)
+    let job_list = s:GetOrCreateJobList()
+    let current_line_num = get(job_list, a:job_id, 1)
+    let buf_no = s:BitoAiFindBufferNo(a:job_id)
 
-    let l:buf_no = s:BitoAiFindBufferNo(a:job_id)
-
+    " Process data for nvim and vim
     if has('nvim')
-        let l:line_text = get(getbufline(l:buf_no, g:bito_job_list[a:job_id]), 0, '')
-        for line in range(1, len(a:data))
-            if line == 1
-                call setbufline(l:buf_no, g:bito_job_list[a:job_id], l:line_text . a:data[line - 1])
-            else
-                call appendbufline(l:buf_no, '$',  a:data[line - 1])
-                let g:bito_job_list[a:job_id] = g:bito_job_list[a:job_id] + 1
-            endif
-        endfor
+        call s:ProcessDataForNvim(buf_no, a:data, current_line_num)
     else
-        call appendbufline(l:buf_no, '$', a:data)
+        call s:ProcessDataForVim(buf_no, a:data)
     endif
-    " Mark the job as having received data
+
+    " Track data receipt for the job
     let g:bito_jobs_opened[a:job_id] = 1
+
+    " Handle initial data receipt for the job
+    if g:bito_jobs_opened[a:job_id] == 1
+        call s:HighlightFirstLine(buf_no)
+    endif
+endfunction
+
+function! s:GetOrCreateJobList()
+    if !exists('g:bito_job_list')
+        let g:bito_job_list = {}
+    endif
+    return g:bito_job_list
+endfunction
+
+function! s:GotoBufferForJob(job_id)
+    let buf_no = s:BitoAiFindBufferNo(a:job_id)
+    call win_gotoid(bufwinid(buf_no))
+endfunction
+
+function! s:ProcessDataForNvim(buf_no, data, current_line_num)
+    " Construct a list of lines
+    let lines = [getbufline(a:buf_no, current_line_num)[0] . a:data[0]]
+    call extend(lines, a:data[1:])
+
+    " Replace and append lines in buffer
+    call setbufline(a:buf_no, current_line_num, lines)
+endfunction
+
+function! s:ProcessDataForVim(buf_no, data)
+    call appendbufline(a:buf_no, '$', a:data)
+endfunction
+
+function! s:HighlightFirstLine(buf_no)
+    call cursor(1, 1)
+    if has('nvim')
+        call nvim_buf_add_highlight(a:buf_no, -1, 'Search', 0, 0, -1)
+    else
+        call matchadd('Search', '^.*$', 0, -1)
+    endif
 endfunction
 
 
