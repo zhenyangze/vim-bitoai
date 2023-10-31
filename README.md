@@ -9,11 +9,11 @@ https://user-images.githubusercontent.com/15710584/236500940-12b82393-a7f5-4eb7-
 
 `https://github.com/gitbito/CLI`
 
-2. install vim-plug (plugin manager)
+2. install and setup vim-plug (plugin manager)
 
 `https://github.com/junegunn/vim-plug`
 
-3. install vim plugin
+3. install vim plugin from inside vim
 
 ```
 Plug 'vim-bitoai'
